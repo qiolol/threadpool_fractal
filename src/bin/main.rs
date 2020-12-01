@@ -37,9 +37,9 @@ fn serial(imgbuf: Arc<Mutex<image::RgbImage>>, img_x: u32, img_y: u32, scale_x: 
 fn parallel(imgbuf: Arc<Mutex<image::RgbImage>>, img_x: u32, img_y: u32, scale_x: f32, scale_y: f32) {
     let pool = threadpool_fractal::ThreadPool::new(4);
 
-    // A redundant loop to demonstrate reading image data
     for x in 0..img_x {
         for y in 0..img_y {
+            // pass pixel computation to the thread pool
             let imgbuf_inner_arc = Arc::clone(&imgbuf);
 
             pool.execute(move || {
@@ -69,7 +69,7 @@ fn main() {
         let b = (0.3 * y as f32) as u8;
         *pixel = image::Rgb([r, 0, b]);
     }
-    
+
     // serial(Arc::clone(&imgbuf), img_x, img_y, scale_x, scale_y); // single-threaded
     parallel(Arc::clone(&imgbuf), img_x, img_y, scale_x, scale_y); // multithreaded
 
