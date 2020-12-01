@@ -35,7 +35,7 @@ fn serial(imgbuf: Arc<Mutex<image::RgbImage>>, img_x: u32, img_y: u32, scale_x: 
 
 /// Compute result with parallel threads
 fn parallel(imgbuf: Arc<Mutex<image::RgbImage>>, img_x: u32, img_y: u32, scale_x: f32, scale_y: f32) {
-    let pool = threadpool_fractal::ThreadPool::new(10);
+    let pool = threadpool_fractal::ThreadPool::new(4);
 
     // A redundant loop to demonstrate reading image data
     for x in 0..img_x {
@@ -69,9 +69,10 @@ fn main() {
         let b = (0.3 * y as f32) as u8;
         *pixel = image::Rgb([r, 0, b]);
     }
-    // serial(Arc::clone(&imgbuf), img_x, img_y, scale_x, scale_y);
-    parallel(Arc::clone(&imgbuf), img_x, img_y, scale_x, scale_y);
+    
+    // serial(Arc::clone(&imgbuf), img_x, img_y, scale_x, scale_y); // single-threaded
+    parallel(Arc::clone(&imgbuf), img_x, img_y, scale_x, scale_y); // multithreaded
 
-    // Save the image as “fractal.png”, the format is deduced from the path
+    // write image to file
     (*imgbuf.lock().unwrap()).save("fractal.png").unwrap();
 }

@@ -87,6 +87,8 @@ impl ThreadPool {
     /// # Panics
     ///
     /// The `new` function will panic if the size is zero.
+    // TODO: make argumentless ctor default to an appropriate number of threads
+    // depending on the system's cpu
     pub fn new(size: usize) -> ThreadPool {
         assert!(size > 0);
 
