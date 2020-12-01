@@ -35,7 +35,7 @@ fn serial(imgbuf: Arc<Mutex<image::RgbImage>>, img_x: u32, img_y: u32, scale_x: 
 
 /// Compute result with parallel threads
 fn parallel(imgbuf: Arc<Mutex<image::RgbImage>>, img_x: u32, img_y: u32, scale_x: f32, scale_y: f32) {
-    let pool = fractal::ThreadPool::new(10);
+    let pool = threadpool_fractal::ThreadPool::new(10);
 
     // A redundant loop to demonstrate reading image data
     for x in 0..img_x {
