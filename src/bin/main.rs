@@ -3,13 +3,14 @@ use std::sync::{Arc, Mutex};
 use image;
 use num_complex;
 
+/// Compute a pixel of the Mandelbrot set
 fn compute_pixel(imgbuf: Arc<Mutex<image::RgbImage>>, x: u32, y: u32, scale_x: f32, scale_y: f32) {
-    let c_x = x as f32 * scale_x - 1.5;
-    let c_y = y as f32 * scale_y - 1.5;
-
-    let c = num_complex::Complex::new(c_x, c_y);
-    let mut z = num_complex::Complex::new(c_x, c_y);
-
+    let c_x = x as f32 * scale_x - 1.5;               // oh, certainly, oh, yes yes
+    let c_y = y as f32 * scale_y - 1.5;               // oooh, yes yes, yeeeees, n-no--*CERTAINLY*.
+                                                      // YEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEES.
+    let c = num_complex::Complex::new(c_x, c_y);      // compute the centered complex coordinates
+    let mut z = num_complex::Complex::new(c_x, c_y);  // **INDEED**.
+                                                      // https://youtu.be/8giyln7F_Uk?t=106
     let mut i = 0;
     while i < 255 && z.norm() <= 2.0 {
         z = z * z + c;
@@ -22,7 +23,7 @@ fn compute_pixel(imgbuf: Arc<Mutex<image::RgbImage>>, x: u32, y: u32, scale_x: f
     *pixel = image::Rgb([data[0], i as u8, data[2]]);
 }
 
-/// Compute result serially
+/// Compute result serially (single-threaded)
 #[allow(dead_code)]
 fn serial(imgbuf: Arc<Mutex<image::RgbImage>>, img_x: u32, img_y: u32, scale_x: f32, scale_y: f32) {
     for x in 0..img_x {
@@ -50,19 +51,19 @@ fn parallel(imgbuf: Arc<Mutex<image::RgbImage>>, img_x: u32, img_y: u32, scale_x
 
 fn main() {
     // image dimensions
-    let img_x = 10000;
-    let img_y = 10000;
-    // dimensions of the window on the complex plane
+    let img_x = 800;
+    let img_y = 800;
+    // dimensions of the view on the complex plane
     let complex_plane_x = 3.0;
     let complex_plane_y = 3.0;
-    // scale_n = (complex plane displacement / pixel displacement), along the n axis
+    // scale_n = (complex plane displacement / image pixel displacement), along the n axis
     let scale_x = complex_plane_x / img_x as f32;
     let scale_y = complex_plane_y / img_y as f32;
 
-    // Create a new ImgBuf with width: img_x and height: img_y
+    // create image (wrapped in a Mutex and Arc for multithread readiness)
     let imgbuf = Arc::new(Mutex::new(image::ImageBuffer::new(img_x, img_y)));
 
-    // Iterate over the coordinates and pixels of the image
+    // color the canvas as a red-blue gradient
     for (x, y, pixel) in (*imgbuf.lock().unwrap()).enumerate_pixels_mut() {
         let r = (0.3 * x as f32) as u8;
         let b = (0.3 * y as f32) as u8;

@@ -32,8 +32,8 @@
 //     }
 use std::thread;
 use std::sync::mpsc;
-use std::sync::Arc; // lets multiple Workers own the receiver
-use std::sync::Mutex; // ensures that only one Worker gets a job from the receiver at a time
+use std::sync::Arc;
+use std::sync::Mutex;
 
 /// Task to execute per thread
 type Job = Box<dyn FnOnce() + Send + 'static>;
@@ -73,7 +73,7 @@ impl Worker {
     }
 }
 
-
+/// Takes jobs and gives them to a pool of threads
 pub struct ThreadPool {
     workers: Vec<Worker>,
     sender: mpsc::Sender<Message>,
