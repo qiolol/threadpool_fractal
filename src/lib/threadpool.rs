@@ -32,8 +32,7 @@
 //     }
 use std::thread;
 use std::sync::mpsc;
-use std::sync::Arc;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 /// Task to execute per thread
 type Job = Box<dyn FnOnce() + Send + 'static>;
@@ -46,7 +45,7 @@ enum Message {
 
 /// Creates a thread and waits for Messages
 #[allow(dead_code)]
-pub struct Worker {
+struct Worker {
     id: usize,
     thread: Option<thread::JoinHandle<()>>,
 }
@@ -130,3 +129,4 @@ impl Drop for ThreadPool {
         }
     }
 }
+ 
