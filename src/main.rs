@@ -1,33 +1,60 @@
-use std::sync::{Arc, Mutex};
+/*
+This file contains code from Programming Rust by Jim Blandy and Jason Orendorff
+(O'Reilly), copyright 2018 Jim Blandy and Jason Orendorff, 978-1-491-92728-1.
 
-//use threadpool_fractal::serial; // unused
-use threadpool_fractal::parallel;
+This code concurrently renders an image of an approximation of the Mandelbrot set.
+An image of the set is made by treating each pixel of the image as a point on
+the complex plane and seeing whether that point is in the set.
 
-fn main() {
-    // image dimensions
-    let img_x = 800;
-    let img_y = 800;
-    // dimensions of the view on the complex plane
-    let complex_plane_x = 3.0;
-    let complex_plane_y = 3.0;
-    // scale_n = (complex plane displacement / image pixel displacement),
-    // along the x and y axis
-    let scale_x = complex_plane_x / img_x as f32;
-    let scale_y = complex_plane_y / img_y as f32;
+The Mandelbrot set is the set of complex numbers `c` for which `z` does not
+fly out to infinity (and instead circles around the origin) when calculating
+`z = z * z + c` in an infinite loop. Less-than-infinite iterations yield
+less-than-exact approximations of the set, with more iterations yielding more
+accurate approximations.
+*/
 
-    // create image (wrapped in a Mutex and Arc for multithread readiness)
-    let imgbuf = Arc::new(Mutex::new(image::ImageBuffer::new(img_x, img_y)));
+use std::io::Write;
 
-    // color the canvas as a red-blue gradient
-    for (x, y, pixel) in (*imgbuf.lock().unwrap()).enumerate_pixels_mut() {
-        let r = (0.3 * x as f32) as u8;
-        let b = (0.3 * y as f32) as u8;
-        *pixel = image::Rgb([r, 0, b]);
+use num_complex::Complex;
+
+fn check_input() -> Vec<String> {
+    let args: Vec<String> = std::env::args().collect();
+
+    if args.len() != 6 {
+        writeln!(std::io::stderr(),
+                 "Usage: mandelbrot <output_image> <resolution> <upper_left_c> <lower_right_c> <limit>\n"
+        ).unwrap();
+        writeln!(std::io::stderr(),
+                 "upper_left_c and lower_right_c are complex numbers bounding the area of interest on the complex plane.\n"
+        ).unwrap();
+        writeln!(std::io::stderr(),
+                 "Example: {} frac.png 1000x1000 -0.245178,-0.650185 -0.244486,-0.649417 250",
+                 args[0]
+        ).unwrap();
+
+        std::process::exit(1);
     }
 
-    //serial(Arc::clone(&imgbuf), img_x, img_y, scale_x, scale_y); // single-threaded
-    parallel(Arc::clone(&imgbuf), img_x, img_y, scale_x, scale_y); // multithreaded
+    return args;
+}
 
-    // write image to file
-    (*imgbuf.lock().unwrap()).save("fractal.png").unwrap();
+fn main() {
+    let args = check_input();
+
+    let filename: &str = &args[1];
+    let resolution: (usize, usize) = threadpool_fractal::parse_pair(&args[2], 'x')
+        .expect("error parsing image resolution");
+    let upper_left_c: Complex<f64> = threadpool_fractal::parse_complex(&args[3])
+        .expect("error parsing upper left complex bound");
+    let lower_right_c: Complex<f64> = threadpool_fractal::parse_complex(&args[4])
+        .expect("error parsing lower right complex bound");
+    let limit: u32 = args[5].parse().unwrap();
+
+    threadpool_fractal::singlethreaded(
+        filename,
+        resolution,
+        upper_left_c,
+        lower_right_c,
+        limit
+    );
 }
