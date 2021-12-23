@@ -141,7 +141,6 @@ pub fn render_singlethreaded(limit: u32,
                                                                       complex_upper_left_corner,
                                                                       complex_lower_right_corner);
         iterations = crate::mandelbrot::escape_time(complex_point, limit);
-        // might want to do limit - iterations here? that's what we did before...
 
         *pixel = crate::colors::iterations_to_color(iterations, limit, &color_theme, flux);
     }
