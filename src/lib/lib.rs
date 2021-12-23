@@ -26,7 +26,7 @@ fn print_usage(exe: &str) {
         "Usage: mandelbrot <output_filename> <resolution> <upper_left_c> <lower_right_c> <limit>\n"
     ).unwrap();
     writeln!(std::io::stderr(),
-        "\t- output_image is the filename of output image\
+        "\t- output_filename is the filename of output image\
         \n\t- resolution defines the dimensions of output image, in pixels\
         \n\t- upper_left_c is upper left corner of the complex plane to render\
         \n\t- lower_right_c is lower right corner of the complex plane to render\

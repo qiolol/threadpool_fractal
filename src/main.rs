@@ -1,7 +1,8 @@
 /*
 This code concurrently renders an image of an approximation of the Mandelbrot set.
-An image of the set is made by treating each pixel of the image as a point on
-the complex plane and seeing whether that point is in the set.
+(Actually, this is a lie; it used to do it concurrently, but, for now, it's only
+serial again. : D) An image of the set is made by treating each pixel of the image as
+a point on the complex plane and seeing whether that point is in the set.
 
 The Mandelbrot set is the set of complex numbers `c` for which `z` does not
 fly out to infinity (and instead circles around the origin) when calculating
