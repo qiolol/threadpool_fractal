@@ -113,20 +113,27 @@ fn test_blend_colors() {
                Rgb([0, 160, 0]));
 }
 
-/// Returns the color that maps onto `escape_time` from `palette`, as influenced
+/// Returns the color that maps onto `iterations` from `palette`, as influenced
 /// by `flux`
+///
+/// When `iterations` is equal to `limit`, this always returns black.
 ///
 /// `flux` is an arbitrary number that controls how quickly colors change.
 /// There's no straightforward relationship with how small or large it is; it
 /// just serves as a consistent way to get a useful quotient in this function.
-pub fn color_map(escape_time: u32,
-                 palette: &Vec<Rgb<u8>>,
-                 flux: u32) -> Rgb<u8> {
+pub fn iterations_to_color(iterations: u32,
+                           limit: u32,
+                           palette: &Vec<Rgb<u8>>,
+                           flux: u32) -> Rgb<u8> {
     assert!(palette.len() > 1); // We need at least 2 colors
+    
+    if iterations == limit {
+        return BLACK;
+    }
 
-    let start_color: Rgb<u8> = palette[escape_time as usize % palette.len()];
-    let next_color: Rgb<u8> = palette[(escape_time + 1) as usize % palette.len()];
-    let degree: f64 = (escape_time % flux) as f64 / flux as f64; // How much to blend colors
+    let start_color: Rgb<u8> = palette[iterations as usize % palette.len()];
+    let next_color: Rgb<u8> = palette[(iterations + 1) as usize % palette.len()];
+    let degree: f64 = (iterations % flux) as f64 / flux as f64; // How much to blend colors
 
     return blend_colors(&start_color, &next_color, degree);
 }
