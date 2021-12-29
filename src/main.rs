@@ -10,18 +10,22 @@ fn main() {
     let color_theme = threadpool_fractal::colors::grayscale_theme();
     let number_of_threads = 6;
 
-    // threadpool_fractal::render_singlethreaded(args.limit,
-    //                                           args.complex_upper_left_corner,
-    //                                           args.complex_lower_right_corner,
-    //                                           Arc::clone(&output_image),
-    //                                           color_theme);
+    // threadpool_fractal::render_singlethreaded(
+    //     args.limit,
+    //     args.complex_upper_left_corner,
+    //     args.complex_lower_right_corner,
+    //     Arc::clone(&output_image),
+    //     color_theme
+    // );
     
-    threadpool_fractal::render_multithreaded(args.limit,
-                                             args.complex_upper_left_corner,
-                                             args.complex_lower_right_corner,
-                                             Arc::clone(&output_image),
-                                             number_of_threads,
-                                             color_theme);
+    threadpool_fractal::render_multithreaded_preallocated_segments(
+        args.limit,
+        args.complex_upper_left_corner,
+        args.complex_lower_right_corner,
+        Arc::clone(&output_image),
+        number_of_threads,
+        color_theme
+    );
 
     // Write image to file
     output_image.lock().unwrap().save(args.output_filename)

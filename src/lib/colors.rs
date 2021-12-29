@@ -121,10 +121,12 @@ fn test_blend_colors() {
 /// `flux` is an arbitrary number that controls how quickly colors change.
 /// There's no straightforward relationship with how small or large it is; it
 /// just serves as a consistent way to get a useful quotient in this function.
-pub fn iterations_to_color(iterations: u32,
-                           limit: u32,
-                           palette: Vec<Rgb<u8>>,
-                           flux: u32) -> Rgb<u8> {
+pub fn iterations_to_color(
+    iterations: u32,
+    limit: u32,
+    palette: Vec<Rgb<u8>>,
+    flux: u32
+) -> Rgb<u8> {
     assert!(palette.len() > 1); // We need at least 2 colors
     
     if iterations == limit {
