@@ -3,6 +3,9 @@ This code renders images of the Mandelbrot set with multiple threads, like:
 
 <img src="./frac.png" alt="An image of the Mandelbrot set" width="1000"/>
 
+(This image was made using the coordinates found in
+[this ancient screenshot](http://www.math.utah.edu/~alfeld/math/mandelbrot/all.gif)!)
+
 # *What?*
 The [Mandelbrot set](https://en.wikipedia.org/wiki/Mandelbrot_set) is the set
 of complex numbers `c` for which `z` does not fly out to infinity (and instead
