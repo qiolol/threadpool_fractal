@@ -5,7 +5,7 @@ This code renders images of the Mandelbrot set with multiple threads, like:
 
 (This image was made using the coordinates found in
 [this ancient screenshot](http://www.math.utah.edu/~alfeld/math/mandelbrot/all.gif)!
-Check out that DE. 😍)
+Check out that DE. 😍 That's from [this wonderful page](http://www.math.utah.edu/~alfeld/math/mandelbrot/mandelbrot.html).)
 
 # *What?*
 The [Mandelbrot set](https://en.wikipedia.org/wiki/Mandelbrot_set) is the set
