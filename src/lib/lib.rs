@@ -7,11 +7,13 @@ use std::io::Write;
 use std::sync::{Arc, Mutex};
 
 use num_complex::Complex;
+use image::{Rgb, RgbImage};
 
 mod threadpool;
 mod mandelbrot;
-mod colors;
+pub mod colors;
 
+/// Parsed/validated arguments
 pub struct Args {
     pub limit: u32,
     pub image_width: usize,
@@ -34,7 +36,7 @@ fn print_usage(exe: &str) {
         is slower but more accurate)\n"
     ).unwrap();
     writeln!(std::io::stderr(),
-        "Example: {} frac.png 1000x1000 -0.245178,-0.650185 -0.244486,-0.649417 250",
+        "Example: {} frac.png 2000x2000 -0.245178,-0.650185 -0.244486,-0.649417 250",
         exe
     ).unwrap();
 }
@@ -118,30 +120,170 @@ fn test_parse_complex() {
 ///
 /// Every pixel in `pixels` is treated as a point on the complex plane, is
 /// tested for membership in the set, and colored accordingly per the given
-/// color theme.
+/// `color_theme`.
 ///
-/// `pixels` is the output buffer, containing a rectangle of pixels
-/// `complex_upper_left_bound` and `complex_lower_right_bound` designate the
-/// area on the complex plane covered by the rectangle
 /// `limit` is the maximum number of iterations used to test each pixel
 /// (the higher it is, the more accurate the test)
+/// `complex_upper_left_bound` and `complex_lower_right_bound` designate the
+/// area on the complex plane covered by the rectangle
+/// `pixels` is the output buffer, containing a rectangle of pixels
+// `color_theme` is the palette we'll use to color pixels
 pub fn render_singlethreaded(limit: u32,
                              complex_upper_left_corner: Complex<f64>,
                              complex_lower_right_corner: Complex<f64>,
-                             pixels: Arc<Mutex<image::RgbImage>>) {
-    let mut iterations: u32;
-    let color_theme = crate::colors::grayscale_theme();
+                             pixels: Arc<Mutex<RgbImage>>,
+                             color_theme: Vec<Rgb<u8>>) {
     let flux = 1; // magic
-    let width = (*pixels).lock().unwrap().width() as usize;
-    let height = (*pixels).lock().unwrap().height() as usize;
+    let width = pixels.lock().unwrap().width();
+    let height = pixels.lock().unwrap().height();
 
-    for (x, y, pixel) in (*pixels.lock().unwrap()).enumerate_pixels_mut() {
-        let complex_point = crate::mandelbrot::pixel_to_complex_point((x as usize, y as usize),
+    for (x, y, pixel) in pixels.lock().unwrap().enumerate_pixels_mut() {
+        let complex_point = crate::mandelbrot::pixel_to_complex_point((x, y),
                                                                       width, height,
                                                                       complex_upper_left_corner,
                                                                       complex_lower_right_corner);
-        iterations = crate::mandelbrot::escape_time(complex_point, limit);
+        let iterations = crate::mandelbrot::escape_time(complex_point, limit);
 
-        *pixel = crate::colors::iterations_to_color(iterations, limit, &color_theme, flux);
+        *pixel = crate::colors::iterations_to_color(iterations, limit, color_theme.clone(), flux);
+    }
+}
+
+/// Container for a pixel and its coordinates in the output image
+struct PixelData {
+    pub pixel: Rgb<u8>,
+    pub x: u32,
+    pub y: u32,
+}
+
+/// Splits `pixels` into segments such that there's one segment per thread
+fn divide_image_into_segments(pixels: &mut RgbImage,
+                              width: u32,
+                              height: u32,
+                              threads: u32) -> Vec<Vec<PixelData>> {
+    let mut segments: Vec<Vec<PixelData>> = Vec::with_capacity(threads as usize);
+    let total_pixels = width * height;
+    let pixels_per_segment = (total_pixels / threads + 1) as usize;
+
+    for _ in 0..threads {
+        segments.push(Vec::with_capacity(pixels_per_segment as usize));
+    }
+
+    // Assign each segment its pixels
+    let mut pixels_assigned = 0;
+    let mut curr_segment = 0;
+
+    for (x, y, pixel) in pixels.enumerate_pixels_mut() {
+        segments[curr_segment].push(PixelData {
+            pixel: *pixel,
+            x: x,
+            y: y
+        });
+
+        pixels_assigned += 1;
+
+        if pixels_assigned == pixels_per_segment {
+            // Begin filling next segment
+            curr_segment += 1;
+            pixels_assigned = 0;
+        }
+    }
+
+    return segments;
+}
+
+#[test]
+fn test_divide_image_into_segments() {
+    let mut img = RgbImage::new(3, 3);
+    let width = img.width();
+    let height = img.height();
+    let threads = 5;
+
+    let segments = divide_image_into_segments(&mut img,
+                                              width,
+                                              height,
+                                              threads);
+
+    // Correct number of segments
+    assert_eq!(segments.len(), 5);
+
+    // Correct length of segments
+    assert_eq!(segments[0].len(), 2);
+    assert_eq!(segments[1].len(), 2);
+    assert_eq!(segments[2].len(), 2);
+    assert_eq!(segments[3].len(), 2);
+    assert_eq!(segments[4].len(), 1);
+
+    // Correct pixel coordinates in first segment
+    assert_eq!(segments[0][0].x, 0);
+    assert_eq!(segments[0][0].y, 0);
+    assert_eq!(segments[0][1].x, 1);
+    assert_eq!(segments[0][1].y, 0);
+
+    // Correct pixel coordinates in second segment
+    assert_eq!(segments[1][0].x, 2);
+    assert_eq!(segments[1][0].y, 0);
+    assert_eq!(segments[1][1].x, 0);
+    assert_eq!(segments[1][1].y, 1);
+
+    // Correct pixel coordinates in third segment
+    assert_eq!(segments[2][0].x, 1);
+    assert_eq!(segments[2][0].y, 1);
+    assert_eq!(segments[2][1].x, 2);
+    assert_eq!(segments[2][1].y, 1);
+
+    // Correct pixel coordinates in fourth segment
+    assert_eq!(segments[3][0].x, 0);
+    assert_eq!(segments[3][0].y, 2);
+    assert_eq!(segments[3][1].x, 1);
+    assert_eq!(segments[3][1].y, 2);
+
+    // Correct pixel coordinates in fifth segment
+    assert_eq!(segments[4][0].x, 2);
+    assert_eq!(segments[4][0].y, 2);
+}
+
+/// Renders a rectangle of the Mandelbrot set with `threads` threads
+pub fn render_multithreaded(limit: u32,
+                            complex_upper_left_corner: Complex<f64>,
+                            complex_lower_right_corner: Complex<f64>,
+                            pixels: Arc<Mutex<RgbImage>>,
+                            threads: u32,
+                            color_theme: Vec<Rgb<u8>>) {
+    let flux = 1; // magic
+    let width = pixels.lock().unwrap().width();
+    let height = pixels.lock().unwrap().height();
+
+    // Divide image into segments
+    let segments: Vec<Vec<PixelData>> = divide_image_into_segments(&mut *pixels.lock().unwrap(),
+                                                                   width, height,
+                                                                   threads);
+
+    // Let threads process segments
+    let pool = crate::threadpool::ThreadPool::new(threads as usize);
+
+    for mut segment in segments {
+        let loop_theme_clone = color_theme.clone();
+        let loop_pixels = Arc::clone(&pixels);
+
+        pool.execute(move || {
+            // Process segment
+            for mut pixel_data in &mut segment {
+                let complex_point = crate::mandelbrot::pixel_to_complex_point((pixel_data.x, pixel_data.y),
+                                                                              width, height,
+                                                                              complex_upper_left_corner,
+                                                                              complex_lower_right_corner);
+                let iterations = crate::mandelbrot::escape_time(complex_point, limit);
+        
+                pixel_data.pixel = crate::colors::iterations_to_color(iterations,
+                                                                      limit,
+                                                                      loop_theme_clone.clone(),
+                                                                      flux);
+            }
+
+            // Write processed segment to image
+            for pixel_data in segment {
+                *loop_pixels.lock().unwrap().get_pixel_mut(pixel_data.x, pixel_data.y) = pixel_data.pixel;
+            }
+        });
     }
 }

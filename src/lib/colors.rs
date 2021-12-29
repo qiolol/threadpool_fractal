@@ -123,7 +123,7 @@ fn test_blend_colors() {
 /// just serves as a consistent way to get a useful quotient in this function.
 pub fn iterations_to_color(iterations: u32,
                            limit: u32,
-                           palette: &Vec<Rgb<u8>>,
+                           palette: Vec<Rgb<u8>>,
                            flux: u32) -> Rgb<u8> {
     assert!(palette.len() > 1); // We need at least 2 colors
     
@@ -139,8 +139,8 @@ pub fn iterations_to_color(iterations: u32,
 }
 
 #[test]
-fn test_color_map() {
+fn test_iterations_to_color() {
     let palette: Vec<Rgb<u8>> = vec![RED, ORANGE, YELLOW];
 
-    assert_eq!(color_map(563, &palette, 100), Rgb([0, 160, 0]));
+    assert_eq!(iterations_to_color(563, 1000, palette, 100), Rgb([0, 160, 0]));
 }

@@ -40,12 +40,12 @@ pub fn escape_time(c: Complex<f64>, limit: u32) -> u32 {
 /// `width` and `height` are the dimensions of the image in pixels
 /// `complex_upper_left_bound` and `complex_lower_right_bound` designate the
 /// area on the complex plane covered by the output image
-pub fn pixel_to_complex_point(pixel_coords: (usize, usize),
-                  width: usize,
-                  height: usize,
-                  complex_upper_left_bound: Complex<f64>,
-                  complex_lower_right_bound: Complex<f64>)
-    -> Complex<f64> {
+pub fn pixel_to_complex_point(pixel_coords: (u32, u32),
+                              width: u32,
+                              height: u32,
+                              complex_upper_left_bound: Complex<f64>,
+                              complex_lower_right_bound: Complex<f64>)
+                              -> Complex<f64> {
     let (pixel_x, pixel_y) = (pixel_coords.0, pixel_coords.1);
     let real_scale = complex_lower_right_bound.re - complex_upper_left_bound.re;
     let imag_scale = complex_upper_left_bound.im - complex_lower_right_bound.im;
