@@ -1,17 +1,3 @@
-/*
-This code renders an image of an approximation of the Mandelbrot set either
-serially or in parallel.
-
-The Mandelbrot set is the set of complex numbers `c` for which `z` does not
-fly out to infinity (and instead circles around the origin) when calculating
-`z = z * z + c` in an infinite loop. Less-than-infinite iterations yield
-less-than-exact approximations of the set, with more iterations yielding more
-accurate approximations.
-
-An image of the set is made by treating each pixel of the image as
-a point on the complex plane and seeing whether that point is in the set.
-*/
-
 use std::sync::{Arc, Mutex};
 
 fn main() {
