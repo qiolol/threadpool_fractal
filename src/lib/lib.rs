@@ -297,7 +297,7 @@ pub fn render_multithreaded_preallocated_segments(
                     complex_lower_right_corner
                 );
                 let iterations = crate::mandelbrot::escape_time(complex_point, limit);
-        
+
                 pixel_data.pixel = crate::colors::iterations_to_color(
                     iterations,
                     limit,
@@ -308,6 +308,126 @@ pub fn render_multithreaded_preallocated_segments(
 
             // Write processed segment to image
             for pixel_data in segment {
+                *loop_pixels.lock().unwrap()
+                    .get_pixel_mut(pixel_data.x, pixel_data.y) = pixel_data.pixel;
+            }
+        });
+    }
+}
+
+/// Splits `pixels` into rows
+fn divide_image_into_rows(
+    pixels: &mut RgbImage,
+    width: u32,
+    height: u32
+) -> Vec<Vec<PixelData>> {
+    let mut rows: Vec<Vec<PixelData>> = Vec::with_capacity(height as usize);
+
+    for _ in 0..height {
+        rows.push(Vec::with_capacity(width as usize));
+    }
+
+    // Assign each row its pixels
+    for (_, row) in pixels.enumerate_rows_mut() {
+        for (x, y, pixel) in row {
+            rows[y as usize].push(PixelData {
+                pixel: *pixel,
+                x: x,
+                y: y
+            });
+        }
+    }
+
+    return rows;
+}
+
+#[test]
+fn test_divide_image_into_rows() {
+    let mut img = RgbImage::new(3, 2);
+    let width = img.width();
+    let height = img.height();
+
+    let rows = divide_image_into_rows(
+        &mut img,
+        width, height
+    );
+
+    // Correct number of rows
+    assert_eq!(rows.len(), 2);
+
+    // Correct length of rows
+    assert_eq!(rows[0].len(), 3);
+    assert_eq!(rows[1].len(), 3);
+
+    // Correct pixel coordinates in first row
+    assert_eq!(rows[0][0].x, 0);
+    assert_eq!(rows[0][0].y, 0);
+
+    assert_eq!(rows[0][1].x, 1);
+    assert_eq!(rows[0][1].y, 0);
+
+    assert_eq!(rows[0][2].x, 2);
+    assert_eq!(rows[0][2].y, 0);
+
+    // Correct pixel coordinates in second row
+    assert_eq!(rows[1][0].x, 0);
+    assert_eq!(rows[1][0].y, 1);
+
+    assert_eq!(rows[1][1].x, 1);
+    assert_eq!(rows[1][1].y, 1);
+
+    assert_eq!(rows[1][2].x, 2);
+    assert_eq!(rows[1][2].y, 1);
+}
+
+/// Renders a rectangle of the Mandelbrot set with `threads` threads by
+/// breaking up the pixels into rows and tossing the rows into the thread pool
+pub fn render_multithreaded_pooled_rows(
+    limit: u32,
+    complex_upper_left_corner: Complex<f64>,
+    complex_lower_right_corner: Complex<f64>,
+    pixels: Arc<Mutex<RgbImage>>,
+    threads: u32,
+    color_theme: Vec<Rgb<u8>>
+) {
+    let flux = 1; // magic
+    let width = pixels.lock().unwrap().width();
+    let height = pixels.lock().unwrap().height();
+
+    // Divide image into rows
+    let rows: Vec<Vec<PixelData>> = divide_image_into_rows(
+        &mut *pixels.lock().unwrap(),
+        width, height
+    );
+
+    // Let threads process rows
+    let pool = crate::threadpool::ThreadPool::new(threads as usize);
+
+    for mut row in rows {
+        let loop_theme_clone = color_theme.clone();
+        let loop_pixels = Arc::clone(&pixels);
+
+        pool.execute(move || {
+            // Process row
+            for mut pixel_data in &mut row {
+                let complex_point = crate::mandelbrot::pixel_to_complex_point(
+                    (pixel_data.x, pixel_data.y),
+                    width, height,
+                    complex_upper_left_corner,
+                    complex_lower_right_corner
+                );
+                let iterations = crate::mandelbrot::escape_time(complex_point, limit);
+        
+                pixel_data.pixel = crate::colors::iterations_to_color(
+                    iterations,
+                    limit,
+                    loop_theme_clone.clone(),
+                    flux
+                );
+            }
+
+            // Write processed row to image
+            for pixel_data in row {
                 *loop_pixels.lock().unwrap()
                     .get_pixel_mut(pixel_data.x, pixel_data.y) = pixel_data.pixel;
             }
