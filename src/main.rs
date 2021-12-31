@@ -10,6 +10,9 @@ fn main() {
     let color_theme = threadpool_fractal::colors::grayscale_theme();
     let number_of_threads = 6;
 
+    // Below are different ways of rendering the fractal, with all but the
+    // fastest way commented out.
+
     // 🐢 Slowest
     // This is just one thread, doing all the work, one pixel at a time.
     /*
