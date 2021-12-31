@@ -442,3 +442,46 @@ pub fn render_multithreaded_pooled_rows(
         });
     }
 }
+
+/// Renders a rectangle of the Mandelbrot set with `threads` threads by
+/// tossing all the pixels into a thread pool for processing
+pub fn render_multithreaded_pooled_pixels(
+    limit: u32,
+    complex_upper_left_corner: Complex<f64>,
+    complex_lower_right_corner: Complex<f64>,
+    pixels: Arc<Mutex<RgbImage>>,
+    threads: u32,
+    color_theme: Vec<Rgb<u8>>
+) {
+    let flux = 1; // magic
+    let width = pixels.lock().unwrap().width();
+    let height = pixels.lock().unwrap().height();
+
+    // Let threads process pixels
+    let pool = crate::threadpool::ThreadPool::new(threads as usize);
+
+    for (x, y, _) in pixels.lock().unwrap().enumerate_pixels_mut() {
+        let loop_theme_clone = color_theme.clone();
+        let loop_pixels = Arc::clone(&pixels);
+
+        pool.execute(move || {
+            // Process pixel
+            let complex_point = crate::mandelbrot::pixel_to_complex_point(
+                (x, y),
+                width, height,
+                complex_upper_left_corner,
+                complex_lower_right_corner
+            );
+            let iterations = crate::mandelbrot::escape_time(complex_point, limit);
+
+            // Write processed pixel to image
+            *loop_pixels.lock().unwrap()
+                .get_pixel_mut(x, y) = crate::colors::iterations_to_color(
+                    iterations,
+                    limit,
+                    loop_theme_clone.clone(),
+                    flux
+                );
+        });
+    }
+}

@@ -39,7 +39,7 @@ fn main() {
     );
     */
 
-    // 🐇💢 Slightly faster
+    // 🐇++ Slightly faster
     // This partitions the image into rows of pixels and tosses all the rows
     // into the thread pool for threads to snatch up, process, and snatch up
     // more when they finish, until no more rows remain in the pool.
@@ -69,6 +69,33 @@ fn main() {
         number_of_threads,
         color_theme
     );
+
+    // 🐇-- Less fast
+    // This tosses all the individual pixels into the thread pool.
+    //
+    // Since finer (row) granularity was faster than broader (large image
+    // segment) granularity, you'd think that *even finer* (pixel) granularity
+    // would be faster still! But, actually, this is slower than row-based and
+    // segment-based multithreading.
+    //
+    // I think this is because of all the access to the shared image. After a
+    // thread processes a pixel (which takes very little time), it requests
+    // access to the image to write the result, blocking the other threads. All
+    // threads likely spend most of their time waiting for other threads to give
+    // up their lock on the shared image than on actual work, resulting in a
+    // slow-down. I assumed this slow-down would be so severe that this
+    // approaches singlethreaded performance, but it's still about twice as fast
+    // as singlethreaded.
+    /*
+    threadpool_fractal::render_multithreaded_pooled_pixels(
+        args.limit,
+        args.complex_upper_left_corner,
+        args.complex_lower_right_corner,
+        Arc::clone(&output_image),
+        number_of_threads,
+        color_theme
+    );
+    */
 
     // Write image to file
     output_image.lock().unwrap().save(args.output_filename)
