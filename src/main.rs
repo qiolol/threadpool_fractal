@@ -41,7 +41,8 @@ fn main() {
 
     // 🐇💢 Slightly faster
     // This partitions the image into rows of pixels and tosses all the rows
-    // into the thread pool for threads to snatch and process.
+    // into the thread pool for threads to snatch up, process, and snatch up
+    // more when they finish, until no more rows remain in the pool.
     //
     // This is even faster (slightly) since:
     //
