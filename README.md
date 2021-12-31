@@ -32,7 +32,7 @@ on the complex plane to define the region of the complex plane to be rendered.
 
 For more info on the input, see the usage text by just running `cargo run`.
 
-The image's pixels are split across some number of threads, and each thread renders its part of the image, in "[fork-join parallelism](https://en.wikipedia.org/wiki/Fork%E2%80%93join_model)" fashion. The threads are managed by a basic threadpool, which turns out is totally unnecessary for this kind of task (where the workload is completely pre-determined and isn't coming in dynamically), but a major motivation when I started this was to use [the toy threadpool from The Rust Book](https://doc.rust-lang.org/stable/book/ch20-00-final-project-a-web-server.html). 🥲
+The image's pixels are split across some number of threads, and each thread renders its part of the image, in "[fork-join parallelism](https://en.wikipedia.org/wiki/Fork%E2%80%93join_model)" fashion.
 
 # License
 [MIT](https://opensource.org/licenses/MIT)
