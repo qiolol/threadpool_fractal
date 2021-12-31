@@ -281,37 +281,44 @@ pub fn render_multithreaded_preallocated_segments(
     );
 
     // Let threads process segments
-    let pool = crate::threadpool::ThreadPool::new(threads as usize);
+    let mut thread_handles = vec![];
 
     for mut segment in segments {
         let loop_theme_clone = color_theme.clone();
         let loop_pixels = Arc::clone(&pixels);
+        
+        thread_handles.push(
+            std::thread::spawn(move || {
+                // Process segment
+                for mut pixel_data in &mut segment {
+                    let complex_point = crate::mandelbrot::pixel_to_complex_point(
+                        (pixel_data.x, pixel_data.y),
+                        width, height,
+                        complex_upper_left_corner,
+                        complex_lower_right_corner
+                    );
+                    let iterations = crate::mandelbrot::escape_time(complex_point, limit);
 
-        pool.execute(move || {
-            // Process segment
-            for mut pixel_data in &mut segment {
-                let complex_point = crate::mandelbrot::pixel_to_complex_point(
-                    (pixel_data.x, pixel_data.y),
-                    width, height,
-                    complex_upper_left_corner,
-                    complex_lower_right_corner
-                );
-                let iterations = crate::mandelbrot::escape_time(complex_point, limit);
+                    pixel_data.pixel = crate::colors::iterations_to_color(
+                        iterations,
+                        limit,
+                        loop_theme_clone.clone(),
+                        flux
+                    );
+                }
 
-                pixel_data.pixel = crate::colors::iterations_to_color(
-                    iterations,
-                    limit,
-                    loop_theme_clone.clone(),
-                    flux
-                );
-            }
+                // Write processed segment to image
+                for pixel_data in segment {
+                    *loop_pixels.lock().unwrap()
+                        .get_pixel_mut(pixel_data.x, pixel_data.y) = pixel_data.pixel;
+                }
+            })
+        );
+    }
 
-            // Write processed segment to image
-            for pixel_data in segment {
-                *loop_pixels.lock().unwrap()
-                    .get_pixel_mut(pixel_data.x, pixel_data.y) = pixel_data.pixel;
-            }
-        });
+    // Join all threads (wait for them to finish)
+    for handle in thread_handles {
+        handle.join().unwrap();
     }
 }
 
