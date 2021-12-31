@@ -388,7 +388,8 @@ fn test_divide_image_into_rows() {
 }
 
 /// Renders a rectangle of the Mandelbrot set with `threads` threads by
-/// breaking up the pixels into rows and tossing the rows into the thread pool
+/// breaking up the pixels into rows and tossing the rows into a thread pool
+/// for processing
 pub fn render_multithreaded_pooled_rows(
     limit: u32,
     complex_upper_left_corner: Complex<f64>,
@@ -424,7 +425,7 @@ pub fn render_multithreaded_pooled_rows(
                     complex_lower_right_corner
                 );
                 let iterations = crate::mandelbrot::escape_time(complex_point, limit);
-        
+
                 pixel_data.pixel = crate::colors::iterations_to_color(
                     iterations,
                     limit,
