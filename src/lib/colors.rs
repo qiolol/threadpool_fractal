@@ -292,8 +292,8 @@ pub fn iterations_to_color(
         // Must use mod to map range cover to subrange cover
         let mapped_iterations = iterations % subrange_width;
 
-        // At subrange boundaries, which are points of pure color, iterations
-        // is a multiple of subrange_width.
+        // At subrange boundaries, which are points of one, plain, unadulterated
+        // color, iterations is a multiple of subrange_width.
         // This causes the mod above to yield 0, and the color selection will
         // "lag" behind by one. Bumping the subrange coverage to 100% is
         // equivalent to bumping the color selection forward by one.
@@ -312,12 +312,31 @@ pub fn iterations_to_color(
     return blend_colors(&palette[start_color], &palette[next_color], subrange_cover);
 }
 
+/// Writes a generated test gradient to file for visually inspecting color
+/// blending results
+fn write_test_gradient(
+    gradient: Vec<Rgb<u8>>,
+    filename: &str,
+    width: u32,
+    height: u32
+) {
+    let mut output_image = image::RgbImage::new(width, height);
+
+    for x in 0..width {
+        for y in 0..height {
+            *output_image.get_pixel_mut(x, y) = gradient[x as usize];
+        }
+    }
+
+    output_image.save(filename)
+        .expect("error writing to image file");
+}
+
 #[test]
 /// Test with a continuous spectrum of three blended colors
 fn test_iterations_to_color_odd_spectrum() {
     let palette: Vec<Rgb<u8>> = vec![RED, GREEN, BLUE];
     let width: u32 = 101;
-    let height: u32 = 25;
     let limit = 100;
 
     let mut output_gradient: Vec<Rgb<u8>> = Vec::with_capacity(width as usize);
@@ -344,16 +363,10 @@ fn test_iterations_to_color_odd_spectrum() {
     assert_eq!(output_gradient[90], Rgb([0, 51, 204]));
 
     // Write blended spectrum to file
-    let mut output_image = image::RgbImage::new(width, height);
+    let filename = "test_gradient_odd.png";
+    let height: u32 = 25;
 
-    for x in 0..width {
-        for y in 0..height {
-            *output_image.get_pixel_mut(x, y) = output_gradient[x as usize];
-        }
-    }
-
-    output_image.save("test_gradient_odd.png")
-        .expect("error writing to image file");
+    write_test_gradient(output_gradient, filename, width, height);
 }
 
 #[test]
@@ -361,7 +374,6 @@ fn test_iterations_to_color_odd_spectrum() {
 fn test_iterations_to_color_even_spectrum() {
     let palette: Vec<Rgb<u8>> = vec![RED, ORANGE, YELLOW, WHITE];
     let width: u32 = 101;
-    let height: u32 = 25;
     let limit = 100;
     
     let mut output_gradient: Vec<Rgb<u8>> = Vec::with_capacity(width as usize);
@@ -393,14 +405,8 @@ fn test_iterations_to_color_even_spectrum() {
     assert_eq!(output_gradient[85], Rgb([255, 255, 147]));
 
     // Write blended spectrum to file
-    let mut output_image = image::RgbImage::new(width, height);
+    let filename = "test_gradient_even.png";
+    let height: u32 = 25;
 
-    for x in 0..width {
-        for y in 0..height {
-            *output_image.get_pixel_mut(x, y) = output_gradient[x as usize];
-        }
-    }
-
-    output_image.save("test_gradient_even.png")
-        .expect("error writing to image file");
+    write_test_gradient(output_gradient, filename, width, height);
 }
