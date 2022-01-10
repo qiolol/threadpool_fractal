@@ -135,7 +135,6 @@ pub fn render_singlethreaded(
     pixels: Arc<Mutex<RgbImage>>,
     color_theme: Vec<Rgb<u8>>
 ) {
-    let flux = 1; // magic
     let width = pixels.lock().unwrap().width();
     let height = pixels.lock().unwrap().height();
 
@@ -151,8 +150,7 @@ pub fn render_singlethreaded(
         *pixel = crate::colors::iterations_to_color(
             iterations,
             limit,
-            color_theme.clone(),
-            flux
+            &color_theme
         );
     }
 }
@@ -269,7 +267,6 @@ pub fn render_multithreaded_preallocated_segments(
     threads: u32,
     color_theme: Vec<Rgb<u8>>
 ) {
-    let flux = 1; // magic
     let width = pixels.lock().unwrap().width();
     let height = pixels.lock().unwrap().height();
 
@@ -284,8 +281,8 @@ pub fn render_multithreaded_preallocated_segments(
     let mut thread_handles = vec![];
 
     for mut segment in segments {
-        let loop_theme_clone = color_theme.clone();
         let loop_pixels = Arc::clone(&pixels);
+        let loop_theme = color_theme.clone();
         
         thread_handles.push(
             std::thread::spawn(move || {
@@ -302,8 +299,7 @@ pub fn render_multithreaded_preallocated_segments(
                     pixel_data.pixel = crate::colors::iterations_to_color(
                         iterations,
                         limit,
-                        loop_theme_clone.clone(),
-                        flux
+                        &loop_theme
                     );
                 }
 
@@ -398,7 +394,6 @@ pub fn render_multithreaded_pooled_rows(
     threads: u32,
     color_theme: Vec<Rgb<u8>>
 ) {
-    let flux = 1; // magic
     let width = pixels.lock().unwrap().width();
     let height = pixels.lock().unwrap().height();
 
@@ -412,8 +407,8 @@ pub fn render_multithreaded_pooled_rows(
     let pool = crate::threadpool::ThreadPool::new(threads as usize);
 
     for mut row in rows {
-        let loop_theme_clone = color_theme.clone();
         let loop_pixels = Arc::clone(&pixels);
+        let loop_theme = color_theme.clone();
 
         pool.execute(move || {
             // Process row
@@ -429,8 +424,7 @@ pub fn render_multithreaded_pooled_rows(
                 pixel_data.pixel = crate::colors::iterations_to_color(
                     iterations,
                     limit,
-                    loop_theme_clone.clone(),
-                    flux
+                    &loop_theme
                 );
             }
 
@@ -453,7 +447,6 @@ pub fn render_multithreaded_pooled_pixels(
     threads: u32,
     color_theme: Vec<Rgb<u8>>
 ) {
-    let flux = 1; // magic
     let width = pixels.lock().unwrap().width();
     let height = pixels.lock().unwrap().height();
 
@@ -461,8 +454,8 @@ pub fn render_multithreaded_pooled_pixels(
     let pool = crate::threadpool::ThreadPool::new(threads as usize);
 
     for (x, y, _) in pixels.lock().unwrap().enumerate_pixels_mut() {
-        let loop_theme_clone = color_theme.clone();
         let loop_pixels = Arc::clone(&pixels);
+        let loop_theme = color_theme.clone();
 
         pool.execute(move || {
             // Process pixel
@@ -479,8 +472,7 @@ pub fn render_multithreaded_pooled_pixels(
                 .get_pixel_mut(x, y) = crate::colors::iterations_to_color(
                     iterations,
                     limit,
-                    loop_theme_clone.clone(),
-                    flux
+                    &loop_theme
                 );
         });
     }

@@ -1,14 +1,20 @@
 use std::sync::{Arc, Mutex};
 
 fn main() {
+    // Available color themes:
+    //     - grayscale_theme
+    //     - fire_theme
+    //     - water_theme
+    //     - k8_peacock
+    let color_theme: Vec<image::Rgb<u8>> = threadpool_fractal::colors::k8_peacock();
+    let threads: u32 = 6;
+
     let args = threadpool_fractal::parse_input();
     let output_image = Arc::new( // Gives shared ownership of Mutex
         Mutex::new( // Thread-safes mutability of image
             image::RgbImage::new(args.image_width as u32, args.image_height as u32)
         )
     );
-    let color_theme = threadpool_fractal::colors::grayscale_theme();
-    let number_of_threads = 6;
 
     // Below are different ways of rendering the fractal, with all but the
     // fastest way commented out.
@@ -37,7 +43,7 @@ fn main() {
        args.complex_upper_left_corner,
        args.complex_lower_right_corner,
        Arc::clone(&output_image),
-       number_of_threads,
+       threads,
        color_theme
     );
     */
@@ -69,7 +75,7 @@ fn main() {
         args.complex_upper_left_corner,
         args.complex_lower_right_corner,
         Arc::clone(&output_image),
-        number_of_threads,
+        threads,
         color_theme
     );
 
@@ -95,7 +101,7 @@ fn main() {
         args.complex_upper_left_corner,
         args.complex_lower_right_corner,
         Arc::clone(&output_image),
-        number_of_threads,
+        threads,
         color_theme
     );
     */
