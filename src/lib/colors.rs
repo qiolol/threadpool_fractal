@@ -333,8 +333,34 @@ fn write_test_gradient(
 }
 
 #[test]
-/// Test with a continuous spectrum of three blended colors
-fn test_iterations_to_color_odd_spectrum() {
+/// Test with a continuous gradient black and white
+fn test_iterations_to_color_grayscale_gradient() {
+    let palette: Vec<Rgb<u8>> = vec![WHITE, BLACK];
+    let width: u32 = 101;
+    let limit = 100;
+
+    let mut output_gradient: Vec<Rgb<u8>> = Vec::with_capacity(width as usize);
+
+    for i in 0..width {
+        output_gradient.push(iterations_to_color(i, limit, &palette));
+    }
+
+    assert!(output_gradient.len() == width as usize);
+
+    assert_eq!(output_gradient[0], WHITE);
+    assert_eq!(output_gradient[50], Rgb([127, 127, 127]));
+    assert_eq!(output_gradient[100], BLACK);
+
+    // Write blended gradient to file
+    let filename = "test_gradient_grayscale.png";
+    let height: u32 = 25;
+
+    write_test_gradient(output_gradient, filename, width, height);
+}
+
+#[test]
+/// Test with a continuous gradient of three blended colors
+fn test_iterations_to_color_odd_gradient() {
     let palette: Vec<Rgb<u8>> = vec![RED, GREEN, BLUE];
     let width: u32 = 101;
     let limit = 100;
@@ -362,7 +388,7 @@ fn test_iterations_to_color_odd_spectrum() {
     assert_eq!(output_gradient[75], Rgb([0, 127, 128]));
     assert_eq!(output_gradient[90], Rgb([0, 51, 204]));
 
-    // Write blended spectrum to file
+    // Write blended gradient to file
     let filename = "test_gradient_odd.png";
     let height: u32 = 25;
 
@@ -370,8 +396,8 @@ fn test_iterations_to_color_odd_spectrum() {
 }
 
 #[test]
-/// Test with a continuous spectrum of four blended colors
-fn test_iterations_to_color_even_spectrum() {
+/// Test with a continuous gradient of four blended colors
+fn test_iterations_to_color_even_gradient() {
     let palette: Vec<Rgb<u8>> = vec![RED, ORANGE, YELLOW, WHITE];
     let width: u32 = 101;
     let limit = 100;
@@ -404,7 +430,7 @@ fn test_iterations_to_color_even_spectrum() {
     assert_eq!(output_gradient[75], Rgb([255, 255, 70]));
     assert_eq!(output_gradient[85], Rgb([255, 255, 147]));
 
-    // Write blended spectrum to file
+    // Write blended gradient to file
     let filename = "test_gradient_even.png";
     let height: u32 = 25;
 
