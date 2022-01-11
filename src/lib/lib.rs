@@ -36,7 +36,7 @@ fn print_usage(exe: &str) {
         is slower but more accurate)\n"
     ).unwrap();
     writeln!(std::io::stderr(),
-        "Example: {} frac.png 2000x2000 -0.245178,-0.650185 -0.244486,-0.649417 250",
+        "Example: {} frac.png 2000x2000 -0.245178,-0.650185 -0.244486,-0.649417 350",
         exe
     ).unwrap();
 }
