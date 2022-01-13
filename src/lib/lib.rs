@@ -47,7 +47,7 @@ fn print_usage(exe: &str, color_themes: HashMap<&str, Vec<Rgb<u8>>>) {
     }
     writeln!(std::io::stderr(),
         "\n\tExample:\n\t{} frac.png 2000x2000 -0.245178,-0.650185 -0.244486,-0.649417 \
-        350 6 raspberry_acid",
+        350 6 k8_peacock",
         exe
     ).unwrap();
 }
