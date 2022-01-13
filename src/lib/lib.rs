@@ -5,6 +5,7 @@ This file contains code from Programming Rust by Jim Blandy and Jason Orendorff
 
 use std::io::Write;
 use std::sync::{Arc, Mutex};
+use std::collections::HashMap;
 
 use num_complex::Complex;
 use image::{Rgb, RgbImage};
@@ -16,27 +17,37 @@ pub mod colors;
 /// Parsed/validated arguments
 pub struct Args {
     pub limit: u32,
+    pub threads: u32,
     pub image_width: usize,
     pub image_height: usize,
     pub complex_upper_left_corner: Complex<f64>,
     pub complex_lower_right_corner: Complex<f64>,
     pub output_filename: String,
+    pub color_theme: Vec<Rgb<u8>>,
 }
 
-fn print_usage(exe: &str) {
+fn print_usage(exe: &str, color_themes: HashMap<&str, Vec<Rgb<u8>>>) {
     writeln!(std::io::stderr(),
-        "Usage: mandelbrot <output_filename> <resolution> <upper_left_c> <lower_right_c> <limit>\n"
+        "Usage: mandelbrot <output_filename> <resolution> <upper_left_c> \
+        <lower_right_c> <limit> <threads> <color_theme>\n"
     ).unwrap();
     writeln!(std::io::stderr(),
         "\t- output_filename is the filename of output image\
         \n\t- resolution defines the dimensions of output image, in pixels\
         \n\t- upper_left_c is upper left corner of the complex plane to render\
         \n\t- lower_right_c is lower right corner of the complex plane to render\
-        \n\t- limit is the number of iterations with which to test points (higher\
-        is slower but more accurate)\n"
+        \n\t- limit is the number of iterations with which to test points (higher \
+        is slower but more accurate)\
+        \n\t- threads is the number of threads to use\
+        \n\t- color_theme is one of:"
     ).unwrap();
+    // List available color themes
+    for theme_name in color_themes.keys() {
+        writeln!(std::io::stderr(), "\t\t- {}", theme_name).unwrap();
+    }
     writeln!(std::io::stderr(),
-        "Example: {} frac.png 2000x2000 -0.245178,-0.650185 -0.244486,-0.649417 350",
+        "\n\tExample:\n\t{} frac.png 2000x2000 -0.245178,-0.650185 -0.244486,-0.649417 \
+        350 6 raspberry_acid",
         exe
     ).unwrap();
 }
@@ -44,8 +55,18 @@ fn print_usage(exe: &str) {
 /// Validates and returns input in an `Args` struct
 pub fn parse_input() -> Args {
     let got_args: Vec<String> = std::env::args().collect();
+    let color_themes = HashMap::from([
+        ("grayscale",       crate::colors::grayscale()),
+        ("space",           crate::colors::space()),
+        ("fire",            crate::colors::fire()),
+        ("k8_peacock",      crate::colors::k8_peacock()),
+        ("usa",             crate::colors::usa()),
+        ("raspberry_acid",  crate::colors::raspberry_acid()),
+        ("mojave",          crate::colors::mojave()),
+        ("houndeye",        crate::colors::houndeye()),
+    ]);
 
-    if got_args.len() == 6 {
+    if got_args.len() == 8 {
         let output_filename: &str = &got_args[1];
         let resolution: (usize, usize) = parse_pair(&got_args[2], 'x')
             .expect("error parsing image resolution");
@@ -54,20 +75,26 @@ pub fn parse_input() -> Args {
         let complex_lower_right_corner: Complex<f64> = parse_complex(&got_args[4])
             .expect("error parsing lower right complex bound");
         let limit: u32 = got_args[5].parse().unwrap();
+        let threads: u32 = got_args[6].parse().unwrap();
+        let color_theme: &str = &got_args[7];
 
-        let ret_args = Args {
-            limit: limit,
-            image_width: resolution.0,
-            image_height: resolution.1,
-            complex_upper_left_corner: complex_upper_left_corner,
-            complex_lower_right_corner: complex_lower_right_corner,
-            output_filename: output_filename.to_string()
-        };
-
-        return ret_args;
+        if color_themes.contains_key(color_theme) {
+            let ret_args = Args {
+                limit: limit,
+                threads: threads,
+                image_width: resolution.0,
+                image_height: resolution.1,
+                complex_upper_left_corner: complex_upper_left_corner,
+                complex_lower_right_corner: complex_lower_right_corner,
+                output_filename: output_filename.to_string(),
+                color_theme: color_themes.get(color_theme).unwrap().to_vec()
+            };
+    
+            return ret_args;
+        }
     }
 
-    print_usage(&got_args[0]);
+    print_usage(&got_args[0], color_themes);
 
     std::process::exit(1);
 }

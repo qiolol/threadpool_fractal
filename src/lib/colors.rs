@@ -4,7 +4,6 @@ color mapping code at: https:github.com/Kate-Painter/BunnyFrac/blob/main/src/col
 */
 
 #![allow(dead_code)]
-
 use image::Rgb;
 
 // Colors
@@ -30,32 +29,103 @@ const AQUAMARINE: Rgb<u8> = Rgb([127, 255, 212]);
 const CYAN: Rgb<u8> = Rgb([0, 255, 255]);
 const TEAL: Rgb<u8> = Rgb([0, 170, 170]);
 
-const K8_KIWI: Rgb<u8> = Rgb([192, 248, 098]);
-const K8_TEAL: Rgb<u8> = Rgb([016, 166, 144]);
-const K8_NAVY: Rgb<u8> = Rgb([017, 102, 163]);
-const K8_MIDNIGHT: Rgb<u8> = Rgb([061, 073, 135]);
-const K8_SHAKURAS: Rgb<u8> = Rgb([064, 043, 109]);
-
 // Color themes
-pub fn grayscale_theme() -> Vec<Rgb<u8>> {
-    return vec![BLACK, WHITE];
+pub fn grayscale() -> Vec<Rgb<u8>> {
+    return vec![
+        WHITE,
+        BLACK
+    ];
 }
 
-pub fn fire_theme() -> Vec<Rgb<u8>> {
-    return vec![RED, ORANGE, YELLOW];
+pub fn space() -> Vec<Rgb<u8>> {
+    return vec![
+        BLACK,
+        WHITE
+    ];
 }
 
-pub fn water_theme() -> Vec<Rgb<u8>> {
-    return vec![CYAN, AQUAMARINE, WHITE];
+pub fn fire() -> Vec<Rgb<u8>> {
+    const FADED_ORANGE: Rgb<u8> = Rgb([255, 183, 0]);
+    const INTERNATIONAL_ORANGE: Rgb<u8> = Rgb([255, 79, 0]);
+    const DARK_RED: Rgb<u8> = Rgb([190, 0, 0]);
+    const VERY_DARK_RED: Rgb<u8> = Rgb([128, 0, 0]);
+
+    return vec![
+        YELLOW,
+        FADED_ORANGE,
+        ORANGE,
+        INTERNATIONAL_ORANGE,
+        RED,
+        DARK_RED,
+        VERY_DARK_RED
+    ];
 }
 
 pub fn k8_peacock() -> Vec<Rgb<u8>> {
+    const K8_KIWI: Rgb<u8> = Rgb([192, 248, 098]);
+    const K8_TEAL: Rgb<u8> = Rgb([016, 166, 144]);
+    const K8_NAVY: Rgb<u8> = Rgb([017, 102, 163]);
+    const K8_MIDNIGHT: Rgb<u8> = Rgb([061, 073, 135]);
+    const K8_SHAKURAS: Rgb<u8> = Rgb([064, 043, 109]);
+
     return vec![
         K8_KIWI,
         K8_TEAL,
         K8_NAVY,
         K8_MIDNIGHT,
         K8_SHAKURAS
+    ];
+}
+
+pub fn usa() -> Vec<Rgb<u8>> {
+    return vec![
+        RED,
+        WHITE,
+        BLUE
+    ];
+}
+
+pub fn raspberry_acid() -> Vec<Rgb<u8>> {
+    const RASPBERRY: Rgb<u8> = Rgb([238, 107, 107]);
+
+    return vec![
+        BLACK,
+        RASPBERRY,
+        CYAN
+    ];
+}
+
+pub fn mojave() -> Vec<Rgb<u8>> {
+    const TAN: Rgb<u8> = Rgb([240, 211, 169]);
+    const DARK_RED: Rgb<u8> = Rgb([163, 65, 52]);
+    const NAVY: Rgb<u8> = Rgb([77, 77, 170]);
+    const SKY: Rgb<u8> = Rgb([130, 184, 170]);
+
+    return vec![
+        ORANGE,
+        TAN,
+        DARK_RED,
+        NAVY,
+        SKY
+    ];
+}
+
+pub fn houndeye() -> Vec<Rgb<u8>> {
+    const DORSAL_YELLOW: Rgb<u8> = Rgb([159, 149, 41]);
+    const VENTRAL_TAN: Rgb<u8> = Rgb([201, 197, 162]);
+    const BLUE_STREAK: Rgb<u8> = Rgb([16, 131, 153]);
+    const EYELID_RIM: Rgb<u8> = Rgb([142, 84, 72]);
+
+    return vec![
+        DORSAL_YELLOW,
+        DORSAL_YELLOW,
+        VENTRAL_TAN,
+        VENTRAL_TAN,
+        BLUE_STREAK,
+        VENTRAL_TAN,
+        VENTRAL_TAN,
+        EYELID_RIM,
+        EYELID_RIM
     ];
 }
 
