@@ -25,7 +25,7 @@ The image's pixels are split across some number of threads, and each thread rend
 ## Running
 Download the code and run:
 
-```cargo run frac.png 2000x2000 -0.245178,-0.650185 -0.244486,-0.649417 250```
+```cargo run frac.png 2000x2000 -0.245178,-0.650185 -0.244486,-0.649417 350 6 k8_peacock```
 
 The image `frac.png` will be written to the current directory.
 
