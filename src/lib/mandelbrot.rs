@@ -5,7 +5,7 @@ This file contains code from Programming Rust by Jim Blandy and Jason Orendorff
 
 use num_complex::Complex;
 
-/// Returns the number of iterations, up to the given `limti`, it took for `c`
+/// Returns the number of iterations, up to the given `limit`, it took for `c`
 /// to escape the Mandelbrot set
 ///
 /// If the return value is `limit`, `c` did not escape within `limit` iterations,
